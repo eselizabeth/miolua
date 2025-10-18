@@ -1,8 +1,6 @@
 
 
 
-use std::str::Chars;
-
 
 use crate::{token::Token};
 
@@ -13,21 +11,16 @@ pub struct Lexer<'a> {
 }
 
 
-impl<'a> Lexer<'a> {
-    pub fn new(source: &'a [u8]) -> Lexer<'a>{
-        Lexer{ 
-            source: source,
-            line_index: 0,
-            char_index: 0,
-        }
-    }
-
-    fn next(&mut self) -> Option<Token>{
+impl<'a>  Iterator for Lexer<'a> {
+    type Item = Token;
+    fn next(&mut self) -> Option<Self::Item>{
         let current_char = self.peek();
-        let next_char = b'q';
-        let two_next_char = b'q';
+        if current_char.is_none(){
+            return None;
+        }
+        let current_char = current_char.unwrap();
         let next_char = self.get_next_char();
-        // let two_next_char = self.get_two_next_char();
+        let two_next_char = self.get_two_next_char();
         let mut move_by = 1;
         let mut token: Token = Token::NONE;
         match current_char{
@@ -118,34 +111,45 @@ impl<'a> Lexer<'a> {
         }
         Some(token)
     }
+}
 
-    fn peek(&mut self) -> u8{
+impl<'a> Lexer<'a> {
+    pub fn new(source: &'a [u8]) -> Lexer<'a>{
+        Lexer{ 
+            source: source,
+            line_index: 0,
+            char_index: 0,
+        }
+    }
+
+    fn peek(&mut self) -> Option<u8>{
+        if self.char_index == self.source.len(){
+            return None;
+        }
         let char = self.source[self.char_index];
-        //println!("{} {}", char, char as char);
-        // if char == b'\n' {
-        //     self.line_index += 1;
-        // }
-        // self.char_index += 1;
-        char
+        Some(char)
     }
 
     fn get_next_char(&mut self) -> u8{
+        if self.char_index + 1 == self.source.len(){
+            return 0;
+        }
         let char = self.source[self.char_index+1];
         char
     }
 
     fn get_two_next_char(&mut self) -> u8{
+        if self.char_index + 2 == self.source.len(){
+            return 0;
+        }
         let char = self.source[self.char_index+2];
         char
     }
 
     pub fn print_all_tokens(&mut self){
-        loop{
-            let token = self.next();
+        for token in self.into_iter(){
             println!("{:?}", token);
         }
-
-
     }
 
 }
