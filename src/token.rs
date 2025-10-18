@@ -23,6 +23,13 @@ pub enum Token{
     L_PAREN, R_PAREN, L_BRACE, R_BRACE, L_BRACKET, R_BRACKET, DOUBLE_COLON,
     SEMICOLON, COLON, COMMA, DOT, TWO_DOT, THREE_DOT,   
 
+    // Literals
+    String(String),
+    Identifier(String),
+    Number(i32),
+
     // Easiness
+    SPACE,
+    EOS, // END OF LINE
     NONE
 }

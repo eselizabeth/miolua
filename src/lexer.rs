@@ -1,7 +1,7 @@
 
 
 
-
+use std::cmp::min;
 use crate::{token::Token};
 
 pub struct Lexer<'a> {
@@ -19,6 +19,8 @@ impl<'a>  Iterator for Lexer<'a> {
             return None;
         }
         let current_char = current_char.unwrap();
+        // println!("char_index is {}", self.char_index);
+        // println!("current char is {}", current_char);
         let next_char = self.get_next_char();
         let two_next_char = self.get_two_next_char();
         let mut move_by = 1;
@@ -102,7 +104,7 @@ impl<'a>  Iterator for Lexer<'a> {
             }
             else { token = Token::DOT }
 
-            char => todo!()
+            char => token = self.parse_text(char)
         };
 
         self.char_index += move_by;
@@ -122,6 +124,63 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn parse_text(&mut self, char: u8) -> Token{
+        let mut token = Token::NONE;
+        match char{
+            b'"' => {
+                token = Token::String(self.get_string())
+            } 
+            c if (c as char).is_ascii_digit() => {
+                token = Token::Number(self.get_number())
+            }
+            c if (c as char).is_ascii_alphanumeric() => {
+                token = Token::Identifier(self.get_identifier())
+            }
+            10 => token = Token::EOS,
+            32 => token = Token::SPACE,
+            _ => panic!("I shouldn't be here!")
+        }
+        return token;
+    }
+
+    fn get_string(&mut self) -> String {
+        let subslice = &self.source[self.char_index + 1..];
+        if let Some(second_pos) = subslice.iter().position(|&b| b == b'"') {
+            self.char_index += 1 + second_pos;
+            return String::from(str::from_utf8(&subslice[..second_pos]).unwrap());
+        }
+        else{
+            String::from("DAHELL??")
+        }
+    }
+
+    fn get_number(&mut self) -> i32 {
+        let mut number = 0;
+        let next_char = self.get_next_char();
+        if next_char.is_ascii_digit(){
+            number = number * 10 + next_char as i32;
+        }
+        return number;
+    }
+
+    fn get_identifier(&mut self) -> String {
+        let subslice = &self.source[self.char_index..];
+        let space_pos = subslice.iter().position(|&b| b == b' ');
+        let eq_pos = subslice.iter().position(|&b| b == b'=');
+        //if let Some(second_pos) = min(subslice.iter().position(|&b| b == b' ').o, subslice.iter().position(|&b| b == b'=')) {
+            if let Some(second_pos) = [space_pos, eq_pos]
+            .into_iter()
+            .flatten()
+            .min()
+        {
+            self.char_index += second_pos;
+            return String::from(str::from_utf8(&subslice[..second_pos]).unwrap());
+        }
+        else{
+            String::from("??")
+        }
+    }
+
     fn peek(&mut self) -> Option<u8>{
         if self.char_index == self.source.len(){
             return None;
@@ -131,7 +190,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn get_next_char(&mut self) -> u8{
-        if self.char_index + 1 == self.source.len(){
+        if self.char_index + 1 >= self.source.len(){
             return 0;
         }
         let char = self.source[self.char_index+1];
@@ -139,7 +198,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn get_two_next_char(&mut self) -> u8{
-        if self.char_index + 2 == self.source.len(){
+        if self.char_index + 2 >= self.source.len(){
             return 0;
         }
         let char = self.source[self.char_index+2];
