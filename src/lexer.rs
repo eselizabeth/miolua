@@ -1,7 +1,7 @@
 
 
 
-use std::cmp::min;
+use std::{cmp::min, str::Bytes};
 use crate::{token::Token};
 
 pub struct Lexer<'a> {
@@ -155,10 +155,12 @@ impl<'a> Lexer<'a> {
     }
 
     fn get_number(&mut self) -> i32 {
-        let mut number = 0;
-        let next_char = self.get_next_char();
-        if next_char.is_ascii_digit(){
-            number = number * 10 + next_char as i32;
+        let mut number = (self.source[self.char_index] - b'0') as i32;
+        let mut next_char = self.get_next_char();
+        while next_char.is_ascii_digit(){
+            number = number * 10 + (next_char - b'0') as i32;
+            self.char_index += 1;
+            next_char = self.get_next_char();
         }
         return number;
     }
@@ -167,6 +169,7 @@ impl<'a> Lexer<'a> {
         let subslice = &self.source[self.char_index..];
         let space_pos = subslice.iter().position(|&b| b == b' ');
         let eq_pos = subslice.iter().position(|&b| b == b'=');
+        //println!("im important {}", space_pos > eq_pos);
         //if let Some(second_pos) = min(subslice.iter().position(|&b| b == b' ').o, subslice.iter().position(|&b| b == b'=')) {
             if let Some(second_pos) = [space_pos, eq_pos]
             .into_iter()
@@ -174,6 +177,7 @@ impl<'a> Lexer<'a> {
             .min()
         {
             self.char_index += second_pos;
+            if space_pos > eq_pos{ self.char_index -=1 }
             return String::from(str::from_utf8(&subslice[..second_pos]).unwrap());
         }
         else{
@@ -185,7 +189,15 @@ impl<'a> Lexer<'a> {
         if self.char_index == self.source.len(){
             return None;
         }
-        let char = self.source[self.char_index];
+        // IGNORE WHITESPACE
+        let mut char = self.source[self.char_index];
+        while char == b' '{
+            if self.char_index + 1 == self.source.len(){
+                return None;
+            }        
+            self.char_index += 1;
+            char = self.source[self.char_index];
+        }
         Some(char)
     }
 

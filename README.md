@@ -1,12 +1,9 @@
-
-
-
-
-
-# TODO
 TODO:
-- [] Lexical analysis
-
+[ ] Lexical analysis
+- [x] Operators (+, -,...)
+- [ ] Keywords (and, break)
+- [x] Literals (String, Integer, Identifier)
+- [ ] Float
 
 
 # References
