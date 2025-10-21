@@ -131,7 +131,7 @@ impl<'a> Lexer<'a> {
                 token = Token::String(self.get_string())
             } 
             c if (c as char).is_ascii_digit() => {
-                token = Token::Number(self.get_number())
+                token = self.get_number()
             }
             c if (c as char).is_ascii_alphanumeric() => {
                 token = self.handle_alphanumeric()
@@ -154,15 +154,24 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn get_number(&mut self) -> i32 {
-        let mut number = (self.source[self.char_index] - b'0') as i32;
+    fn get_number(&mut self) -> Token {
+        let mut buffer: Vec<u8> = vec!(self.source[self.char_index]);
+        
         let mut next_char = self.get_next_char();
-        while next_char.is_ascii_digit(){
-            number = number * 10 + (next_char - b'0') as i32;
+        let mut is_float = false;
+        while next_char.is_ascii_digit() || next_char == b'.' {
+            if next_char == b'.'{ is_float = true}
+            buffer.push(next_char);
             self.char_index += 1;
             next_char = self.get_next_char();
         }
-        return number;
+        let num = str::from_utf8(&buffer).ok().unwrap();
+        if is_float{
+            return Token::Float(str::parse(num).expect("da hell"));
+        }
+        else {
+            return Token::Int(str::parse(num).expect("da hell"));
+        }
     }
 
     fn handle_alphanumeric(&mut self) -> Token {

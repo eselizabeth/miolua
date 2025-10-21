@@ -26,7 +26,8 @@ pub enum Token{
     // Literals
     String(String),
     Identifier(String),
-    Number(i32),
+    Float(f64),
+    Int(i64),
 
     // Easiness
     SPACE,
