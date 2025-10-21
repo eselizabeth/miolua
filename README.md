@@ -1,7 +1,7 @@
 TODO:
 [ ] Lexical analysis
 - [x] Operators (+, -,...)
-- [ ] Keywords (and, break)
+- [x] Keywords (and, break)
 - [x] Literals (String, Integer, Identifier)
 - [ ] Float
 

@@ -1,7 +1,7 @@
 
 
 
-use std::{cmp::min, str::Bytes};
+use std::{cmp::min, str::{self, Bytes}};
 use crate::{token::Token};
 
 pub struct Lexer<'a> {
@@ -134,7 +134,7 @@ impl<'a> Lexer<'a> {
                 token = Token::Number(self.get_number())
             }
             c if (c as char).is_ascii_alphanumeric() => {
-                token = Token::Identifier(self.get_identifier())
+                token = self.handle_alphanumeric()
             }
             10 => token = Token::EOS,
             32 => token = Token::SPACE,
@@ -165,23 +165,55 @@ impl<'a> Lexer<'a> {
         return number;
     }
 
-    fn get_identifier(&mut self) -> String {
+    fn handle_alphanumeric(&mut self) -> Token {
         let subslice = &self.source[self.char_index..];
         let space_pos = subslice.iter().position(|&b| b == b' ');
         let eq_pos = subslice.iter().position(|&b| b == b'=');
         //println!("im important {}", space_pos > eq_pos);
         //if let Some(second_pos) = min(subslice.iter().position(|&b| b == b' ').o, subslice.iter().position(|&b| b == b'=')) {
-            if let Some(second_pos) = [space_pos, eq_pos]
+        if let Some(second_pos) = [space_pos, eq_pos]
             .into_iter()
             .flatten()
             .min()
         {
             self.char_index += second_pos;
             if space_pos > eq_pos{ self.char_index -=1 }
-            return String::from(str::from_utf8(&subslice[..second_pos]).unwrap());
+            return Lexer::get_alphan_token(&subslice[..second_pos]);
+            //let text = &subslice[..second_pos];
+            // let mut token = Token::Identifier(String::from(str::from_utf8(text).unwrap()));
+            // Lexer::handle_keyword(&mut token);
         }
         else{
-            String::from("??")
+            Token::NONE
+        }
+    }
+
+    fn get_alphan_token(subslice: &[u8]) -> Token{
+        let text = str::from_utf8(subslice).unwrap();
+        match text{
+            "AND" => Token::AND,
+            "OR" => Token::OR,
+            "BREAK" => Token::BREAK,
+            "DO" => Token::DO,
+            "ELSE" => Token::ELSE,
+            "ELSEIF" => Token::ELSEIF,
+            "END" => Token::END,
+            "FALSE" => Token::FALSE,
+            "FOR" => Token::FOR,
+            "FUNCTION" => Token::FUNCTION,
+            "GOTO" => Token::GOTO,
+            "IF" => Token::IF,
+            "IN" => Token::IN,
+            "LOCAL" => Token::LOCAL,
+            "NIL" => Token::NIL,
+            "NOT" => Token::NOT,
+            "REPEAT" => Token::REPEAT,
+            "RETURN" => Token::RETURN,
+            "THEN" => Token::THEN,
+            "TRUE" => Token::TRUE,
+            "UNTIL" => Token::UNTIL,
+            "WHILE" => Token::WHILE,
+            _ => Token::Identifier(String::from(text))
         }
     }
 
