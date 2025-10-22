@@ -4,8 +4,8 @@
 
 
 // https://www.lua.org/manual/5.4/manual.html#3.1
-//Lua is a case-sensitive language:
-//A comment starts with a double hyphen (--) anywhere outside a string.
+// Lua is a case-sensitive language:
+// A comment starts with a double hyphen (--) anywhere outside a string.
 #[derive(PartialEq)]
 #[derive(Debug)]
 #[allow(non_camel_case_types)]

@@ -239,6 +239,16 @@ impl<'a> Lexer<'a> {
             self.char_index += 1;
             char = self.source[self.char_index];
         }
+        // IGNORE COMMENT
+        //println!("xyz {:?}", self.get_next_char() as char);
+        if char == b'-' && self.get_next_char() == b'-'{
+            //println!("here");
+            loop {
+                if char == 10 { break; }
+                self.char_index += 1;
+                char = self.source[self.char_index];
+            }
+        }
         Some(char)
     }
 

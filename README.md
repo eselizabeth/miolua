@@ -4,6 +4,8 @@ TODO:
 - [x] Keywords (and, break)
 - [x] Literals (String, Integer, Identifier)
 - [x] Float
+- [x] Comments
+- [] Tests
 - [ ] Error Handling
 
 
