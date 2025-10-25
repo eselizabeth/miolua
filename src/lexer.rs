@@ -176,8 +176,8 @@ impl<'a> Lexer<'a> {
 
     fn handle_alphanumeric(&mut self) -> Token {
         let subslice = &self.source[self.char_index..];
-        let space_pos = subslice.iter().position(|&b| b == b' ');
-        let eq_pos = subslice.iter().position(|&b| b == b'=');
+        let space_pos = subslice.iter().position(|&b| b == b' ' || b == b'\n');
+        let eq_pos = subslice.iter().position(|&b| Token::is_keyword(&b));
         //println!("im important {}", space_pos > eq_pos);
         //if let Some(second_pos) = min(subslice.iter().position(|&b| b == b' ').o, subslice.iter().position(|&b| b == b'=')) {
         if let Some(second_pos) = [space_pos, eq_pos]
@@ -200,28 +200,28 @@ impl<'a> Lexer<'a> {
     fn get_alphan_token(subslice: &[u8]) -> Token{
         let text = str::from_utf8(subslice).unwrap();
         match text{
-            "AND" => Token::AND,
-            "OR" => Token::OR,
-            "BREAK" => Token::BREAK,
-            "DO" => Token::DO,
-            "ELSE" => Token::ELSE,
-            "ELSEIF" => Token::ELSEIF,
-            "END" => Token::END,
-            "FALSE" => Token::FALSE,
-            "FOR" => Token::FOR,
-            "FUNCTION" => Token::FUNCTION,
-            "GOTO" => Token::GOTO,
-            "IF" => Token::IF,
-            "IN" => Token::IN,
-            "LOCAL" => Token::LOCAL,
-            "NIL" => Token::NIL,
-            "NOT" => Token::NOT,
-            "REPEAT" => Token::REPEAT,
-            "RETURN" => Token::RETURN,
-            "THEN" => Token::THEN,
-            "TRUE" => Token::TRUE,
-            "UNTIL" => Token::UNTIL,
-            "WHILE" => Token::WHILE,
+            "AND" | "and" => Token::AND,
+            "OR" | "or" => Token::OR,
+            "BREAK" | "break" => Token::BREAK,
+            "DO" | "do" => Token::DO,
+            "ELSE" | "else" => Token::ELSE,
+            "ELSEIF" | "elseif" => Token::ELSEIF,
+            "END" | "end" => Token::END,
+            "FALSE" | "false" => Token::FALSE,
+            "FOR" | "for" => Token::FOR,
+            "FUNCTION" | "function" => Token::FUNCTION,
+            "GOTO" | "goto" => Token::GOTO,
+            "IF" | "if" => Token::IF,
+            "IN" | "in" => Token::IN,
+            "LOCAL" | "local" => Token::LOCAL,
+            "NIL" | "nil" => Token::NIL,
+            "NOT" | "not" => Token::NOT,
+            "REPEAT" | "repeat" => Token::REPEAT,
+            "RETURN" | "return" => Token::RETURN,
+            "THEN" | "then" => Token::THEN,
+            "TRUE" | "true" => Token::TRUE,
+            "UNTIL" | "until" => Token::UNTIL,
+            "WHILE" | "while" => Token::WHILE,
             _ => Token::Identifier(String::from(text))
         }
     }
@@ -232,7 +232,7 @@ impl<'a> Lexer<'a> {
         }
         // IGNORE WHITESPACE
         let mut char = self.source[self.char_index];
-        while char == b' '{
+        while char == b' ' || char== b'\t'{
             if self.char_index + 1 == self.source.len(){
                 return None;
             }        
@@ -242,14 +242,17 @@ impl<'a> Lexer<'a> {
         // IGNORE COMMENT
         //println!("xyz {:?}", self.get_next_char() as char);
         if char == b'-' && self.get_next_char() == b'-'{
-            //println!("here");
             loop {
-                if char == 10 { break; }
+                if char == 10 || self.is_last_char(self.char_index + 1) { break; }
                 self.char_index += 1;
                 char = self.source[self.char_index];
             }
         }
         Some(char)
+    }
+
+    fn is_last_char(&mut self, index: usize) -> bool{
+        index == self.source.len()
     }
 
     fn get_next_char(&mut self) -> u8{
@@ -272,6 +275,100 @@ impl<'a> Lexer<'a> {
         for token in self.into_iter(){
             println!("{:?}", token);
         }
+    }
+
+    pub fn get_all_tokens(&mut self) -> Vec<Token>{
+        let mut tokens: Vec<Token> = Vec::new();
+        for token in self.into_iter(){
+            if token != Token::EOS{
+                tokens.push(token);
+            }
+        }
+        return tokens;
+    }
+
+}
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn confirm_tokens(source: &str, expected_tokens: Vec<Token>){
+        let mut lex = Lexer::new(source.as_bytes());
+        let actual_tokens = lex.get_all_tokens();
+        for (pos, expected_token) in expected_tokens.iter().enumerate(){
+            let actual_token = actual_tokens.get(pos).unwrap();
+            assert_eq!(actual_token, expected_token);
+        }
+    }
+
+
+    #[test]
+    fn hello_world() {
+        let source = "
+        print \"hello world\";
+        print \"hello earth\";
+        ";
+        let tokens: Vec<Token> = vec![
+            Token::Identifier("print".to_owned()), Token::String("hello world".to_owned()), Token::SEMICOLON,
+            Token::Identifier("print".to_owned()), Token::String("hello earth".to_owned()), Token::SEMICOLON
+            ];
+        confirm_tokens(source, tokens);
+    }
+
+    #[test]
+    fn comment() {
+        let source = "local i; -- im'a comment";
+        let tokens: Vec<Token> = vec![Token::LOCAL, Token::Identifier("i".to_owned()), Token::SEMICOLON];
+        confirm_tokens(source, tokens);
+    }
+
+    #[test]
+    fn variables() {
+        let source = "
+            y=7;
+            x = 1.223;
+            local i = 99;
+        ";
+        let tokens: Vec<Token> = vec![
+            Token::Identifier("y".to_owned()), Token::ASSIGN, Token::Int(7), Token::SEMICOLON,
+            Token::Identifier("x".to_owned()), Token::ASSIGN, Token::Float(1.223), Token::SEMICOLON,
+            Token::LOCAL, Token::Identifier("i".to_owned()), Token::ASSIGN, Token::Int(99), Token::SEMICOLON,
+            ];
+        confirm_tokens(source, tokens);
+
+    }
+
+    #[test]
+    fn operators() {
+        let source = "
+            +-*::...
+        ";
+        let tokens: Vec<Token> = vec![
+            Token::PLUS_SIGN, Token::MINUS_SIGN, Token::STAR_SIGN, Token::DOUBLE_COLON, Token::THREE_DOT
+            ];
+        confirm_tokens(source, tokens);
+
+    }
+
+    #[test]
+    fn keyword(){
+        let source = "
+        
+        function sum(n1,n2) -- i'm a comment
+            sum=n1+n2
+        return sum
+        end
+        ";
+        let tokens: Vec<Token> = vec![
+            Token::FUNCTION, Token::Identifier("sum".to_owned()), Token::L_PAREN, Token::Identifier("n1".to_owned()), Token::COMMA, Token::Identifier("n2".to_owned()), Token::R_PAREN,
+            Token::Identifier("sum".to_owned()), Token::ASSIGN, Token::Identifier("n1".to_owned()), Token::PLUS_SIGN, Token::Identifier("n2".to_owned()),
+            Token::RETURN, Token::Identifier("sum".to_owned()),
+            Token::END
+            ];
+        confirm_tokens(source, tokens);
     }
 
 }

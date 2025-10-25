@@ -1,11 +1,11 @@
 TODO:
 [x] Lexical analysis
-- [x] Operators (+, -,...)
+- [x] Operators and delimitators (+, -,...)
 - [x] Keywords (and, break)
 - [x] Literals (String, Integer, Identifier)
 - [x] Float
 - [x] Comments
-- [] Tests
+- [x] Tests
 - [ ] Error Handling
 
 

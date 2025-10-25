@@ -34,3 +34,34 @@ pub enum Token{
     EOS, // END OF LINE
     NONE
 }
+
+
+impl Token {
+    pub fn is_keyword(char: &u8) -> bool {
+        matches!(char,
+        b'+' |
+        b'-' |
+        b'*' |
+        b'/' |
+        b'%' |
+        b'^' |
+        b'#' |
+        b'&' |
+        b'~' |
+        b'|' |
+        b'<' |
+        b'>' |
+        b'=' |
+        b'(' |
+        b')' |
+        b'{' |
+        b'}' |
+        b'[' |
+        b']' |
+        b';' |
+        b':' |
+        b',' |
+        b'.'
+        )
+    }
+}
