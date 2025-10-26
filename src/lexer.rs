@@ -123,7 +123,7 @@ impl<'a> Lexer<'a> {
             char_index: 0,
         }
     }
-
+    
     fn parse_text(&mut self, char: u8) -> Token{
         let mut token = Token::NONE;
         match char{
@@ -271,16 +271,11 @@ impl<'a> Lexer<'a> {
         char
     }
 
-    pub fn print_all_tokens(&mut self){
-        for token in self.into_iter(){
-            println!("{:?}", token);
-        }
-    }
-
     pub fn get_all_tokens(&mut self) -> Vec<Token>{
         let mut tokens: Vec<Token> = Vec::new();
         for token in self.into_iter(){
             if token != Token::EOS{
+                println!("{:?}", token);
                 tokens.push(token);
             }
         }

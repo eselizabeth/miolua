@@ -8,6 +8,7 @@
 // A comment starts with a double hyphen (--) anywhere outside a string.
 #[derive(PartialEq)]
 #[derive(Debug)]
+#[derive(Clone)]
 #[allow(non_camel_case_types)]
 pub enum Token{
     // Keywords

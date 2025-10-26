@@ -1,6 +1,7 @@
 use std::{env, fs};
 
 use crate::token::Token;
+use crate::translator::Translator;
 use crate::{lexer::Lexer};
 
 pub struct Luac{
@@ -16,7 +17,10 @@ impl Luac{
         else if args.len() == 2{
             let source = Luac::get_file_content(args[1].clone());
             let mut lexer = Lexer::new(source.as_bytes());
-            lexer.print_all_tokens();
+            //let tokens = lexer.get_all_tokens();
+            let mut translator = Translator::new(lexer);
+            translator.parse();
+            translator.print_bytecode();
             //Luac::execute_file(content);
         }
         else{
