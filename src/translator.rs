@@ -2,7 +2,7 @@
 
 use crate::lexer::Lexer;
 use crate::token::Token;
-use crate::bytecode::{self, ByteCode};
+use crate::bytecode::{ByteCode};
 
 
 pub enum Data{
@@ -23,7 +23,7 @@ pub struct Translator<'a>{
 impl<'a> Translator<'a>{
     pub fn new(lexer: Lexer<'a>) -> Translator<'a>{
         Translator {
-            lexer: lexer,
+            lexer,
             data_table_index: 0,
             data_table: Vec::new(),
             bytecodes: Vec::new()
@@ -31,13 +31,7 @@ impl<'a> Translator<'a>{
     }
 
     pub fn parse(&mut self){
-        loop{
-            let token = if let Some(tok) = self.lexer.next() {
-                tok 
-            }
-            else {
-                break;
-            };
+        while let Some(token) = self.lexer.next(){
             match token{
                 Token::LOCAL => {
                     self.load_value();

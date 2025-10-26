@@ -1,12 +1,11 @@
 
 
 
-use std::{cmp::min, str::{self, Bytes}};
+use std::{str::{self}};
 use crate::{token::Token};
 
 pub struct Lexer<'a> {
     source: &'a [u8],
-    line_index: usize,
     char_index: usize,
 }
 
@@ -14,97 +13,91 @@ pub struct Lexer<'a> {
 impl<'a>  Iterator for Lexer<'a> {
     type Item = Token;
     fn next(&mut self) -> Option<Self::Item>{
-        let current_char = self.peek();
-        if current_char.is_none(){
-            return None;
-        }
-        let current_char = current_char.unwrap();
+        let current_char = self.peek()?;
         // println!("char_index is {}", self.char_index);
         // println!("current char is {}", current_char);
         let next_char = self.get_next_char();
         let two_next_char = self.get_two_next_char();
         let mut move_by = 1;
-        let mut token: Token = Token::NONE;
-        match current_char{
+        let token = match current_char{
             b'/' => {
                 if next_char == b'/'{
-                    token = Token::INT_DIV;
-                    move_by += 2;                
+                    move_by += 2;       
+                    Token::INT_DIV
                 }
-                else{ token = Token::SLASH_SIGN }
+                else{ Token::SLASH_SIGN }
             },
-            b'+' => token = Token::PLUS_SIGN,
-            b'-' => token = Token::MINUS_SIGN,
-            b'*' => token = Token::STAR_SIGN,
-            b'%' => token = Token::MOD_SIGN,
-            b'^' => token = Token::CARET_SIGN,
-            b'#' => token = Token::HASH_SIGN,
-            b'&' => token = Token::AMP_SIGN,
+            b'+' => Token::PLUS_SIGN,
+            b'-' => Token::MINUS_SIGN,
+            b'*' => Token::STAR_SIGN,
+            b'%' => Token::MOD_SIGN,
+            b'^' => Token::CARET_SIGN,
+            b'#' => Token::HASH_SIGN,
+            b'&' => Token::AMP_SIGN,
             b'~' => {
                 if next_char == b'='{
-                    token = Token::NOT_EQUAL;
                     move_by += 2;                
+                    Token::NOT_EQUAL
                 }
-                else{ token = Token::TILDE_SIGN}
+                else{ Token::TILDE_SIGN }
             },
-            b'|' => token = Token::PIPE_SIGN,
+            b'|' => Token::PIPE_SIGN,
             b'<' => {
                 if next_char == b'<'{
-                    token = Token::L_SHIFT;
                     move_by += 2;                
+                    Token::L_SHIFT
                 }
                 else if next_char == b'='{
-                    token = Token::LESS_EQUAL;
-                    move_by += 2;                
+                    move_by += 2;
+                    Token::LESS_EQUAL
                 }
-                else{ token = Token::LESS}
+                else{ Token::LESS }
             },
             b'>' => {
                 if next_char == b'>'{
-                    token = Token::R_SHIFT;
-                    move_by = 2;                
+                    move_by += 2;                
+                    Token::R_SHIFT             
                 }
                 else if next_char == b'='{
-                    token = Token::GREATER_EQUAL;
                     move_by += 2;                
+                    Token::GREATER_EQUAL
                 }
-                else { token = Token::GREATER}
+                else { Token::GREATER}
             },
             b'=' => {
                 if next_char == b'='{
-                    token = Token::EQUAL;
                     move_by += 2;                
+                    Token::EQUAL
                 }
-                else { token = Token::ASSIGN }
+                else { Token::ASSIGN }
             },
-            b'(' => token = Token::L_PAREN,
-            b')' => token = Token::R_PAREN,
-            b'{' => token = Token::L_BRACE,
-            b'}' => token = Token::R_BRACE,
-            b'[' => token = Token::L_BRACKET,
-            b']' => token = Token::R_BRACKET,
+            b'(' => Token::L_PAREN,
+            b')' => Token::R_PAREN,
+            b'{' => Token::L_BRACE,
+            b'}' => Token::R_BRACE,
+            b'[' => Token::L_BRACKET,
+            b']' => Token::R_BRACKET,
 
             b':' => {
                 if next_char == b':'{
-                    token = Token::DOUBLE_COLON;
-                    move_by = 2;                
+                    move_by += 2;                
+                    Token::DOUBLE_COLON
                 }
-                else { token = Token::COLON }
+                else { Token::COLON }
             }
-            b';' => token = Token::SEMICOLON,
-            b',' => token = Token::COMMA,
+            b';' => Token::SEMICOLON,
+            b',' => Token::COMMA,
             b'.' =>
             if next_char == b'.' && two_next_char == b'.'{
-                token = Token::THREE_DOT;
                 move_by = 3;                
+                Token::THREE_DOT
             }
             else if next_char == b'.'{
-                token = Token::TWO_DOT;
                 move_by = 2;              
+                Token::TWO_DOT
             }
-            else { token = Token::DOT }
-
-            char => token = self.parse_text(char)
+            else { Token::DOT }
+            char => self.parse_text(char)
         };
 
         self.char_index += move_by;
@@ -118,36 +111,34 @@ impl<'a>  Iterator for Lexer<'a> {
 impl<'a> Lexer<'a> {
     pub fn new(source: &'a [u8]) -> Lexer<'a>{
         Lexer{ 
-            source: source,
-            line_index: 0,
+            source,
             char_index: 0,
         }
     }
     
     fn parse_text(&mut self, char: u8) -> Token{
-        let mut token = Token::NONE;
-        match char{
+        let token: Token = match char{
             b'"' => {
-                token = Token::String(self.get_string())
+                Token::String(self.get_string())
             } 
             c if (c as char).is_ascii_digit() => {
-                token = self.get_number()
+                self.get_number()
             }
             c if (c as char).is_ascii_alphanumeric() => {
-                token = self.handle_alphanumeric()
+                self.handle_alphanumeric()
             }
-            10 => token = Token::EOS,
-            32 => token = Token::SPACE,
+            10 => Token::EOS,
+            32 => Token::SPACE,
             _ => panic!("I shouldn't be here!")
-        }
-        return token;
+        };
+        token
     }
 
     fn get_string(&mut self) -> String {
         let subslice = &self.source[self.char_index + 1..];
         if let Some(second_pos) = subslice.iter().position(|&b| b == b'"') {
             self.char_index += 1 + second_pos;
-            return String::from(str::from_utf8(&subslice[..second_pos]).unwrap());
+            String::from(str::from_utf8(&subslice[..second_pos]).unwrap())
         }
         else{
             String::from("DAHELL??")
@@ -167,10 +158,10 @@ impl<'a> Lexer<'a> {
         }
         let num = str::from_utf8(&buffer).ok().unwrap();
         if is_float{
-            return Token::Float(str::parse(num).expect("da hell"));
+            Token::Float(str::parse(num).expect("da hell"))
         }
         else {
-            return Token::Int(str::parse(num).expect("da hell"));
+            Token::Int(str::parse(num).expect("da hell"))
         }
     }
 
@@ -187,7 +178,7 @@ impl<'a> Lexer<'a> {
         {
             self.char_index += second_pos;
             if space_pos > eq_pos{ self.char_index -=1 }
-            return Lexer::get_alphan_token(&subslice[..second_pos]);
+            Lexer::get_alphan_token(&subslice[..second_pos])
             //let text = &subslice[..second_pos];
             // let mut token = Token::Identifier(String::from(str::from_utf8(text).unwrap()));
             // Lexer::handle_keyword(&mut token);
@@ -259,16 +250,15 @@ impl<'a> Lexer<'a> {
         if self.char_index + 1 >= self.source.len(){
             return 0;
         }
-        let char = self.source[self.char_index+1];
-        char
+        self.source[self.char_index+1]
     }
 
     fn get_two_next_char(&mut self) -> u8{
         if self.char_index + 2 >= self.source.len(){
             return 0;
         }
-        let char = self.source[self.char_index+2];
-        char
+        self.source[self.char_index+2]
+        
     }
 
     pub fn get_all_tokens(&mut self) -> Vec<Token>{
@@ -279,7 +269,7 @@ impl<'a> Lexer<'a> {
                 tokens.push(token);
             }
         }
-        return tokens;
+        tokens
     }
 
 }

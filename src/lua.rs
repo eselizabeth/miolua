@@ -1,6 +1,5 @@
 use std::{env, fs};
 
-use crate::token::Token;
 use crate::translator::Translator;
 use crate::{lexer::Lexer};
 
@@ -16,29 +15,22 @@ impl Luac{
         }
         else if args.len() == 2{
             let source = Luac::get_file_content(args[1].clone());
-            let mut lexer = Lexer::new(source.as_bytes());
+            let lexer = Lexer::new(source.as_bytes());
             //let tokens = lexer.get_all_tokens();
             let mut translator = Translator::new(lexer);
             translator.parse();
             translator.print_bytecode();
-            //Luac::execute_file(content);
         }
         else{
             panic!("Usage: miolua [script]");
         }
     }
 
-    fn execute_file(content: String) -> Vec<Token>{
-        todo!();
-
-    }
-
     fn get_file_content(file_path: String) -> String{
-        let content: String;
-        match fs::read_to_string(file_path.clone()){
-            Ok(val) => content = val,
+        let content: String = match fs::read_to_string(file_path.clone()){
+            Ok(val) => val,
             Err(e) => panic!("problem reading input file {e}")
-        }
+        };
         content
     }
 

@@ -10,6 +10,7 @@
 #[derive(Debug)]
 #[derive(Clone)]
 #[allow(non_camel_case_types)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Token{
     // Keywords
     AND, BREAK, DO, ELSE, ELSEIF, END, 
