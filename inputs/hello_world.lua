@@ -1,2 +1,1 @@
-local xyz = "qwerty";
-print(xyz);
+print("hello world")

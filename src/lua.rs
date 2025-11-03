@@ -1,6 +1,7 @@
 use std::{env, fs};
 
-use crate::translator::Translator;
+use crate::compiler::Compiler;
+use crate::vm::VM;
 use crate::{lexer::Lexer};
 
 pub struct Luac{
@@ -17,9 +18,11 @@ impl Luac{
             let source = Luac::get_file_content(args[1].clone());
             let lexer = Lexer::new(source.as_bytes());
             //let tokens = lexer.get_all_tokens();
-            let mut translator = Translator::new(lexer);
-            translator.parse();
-            translator.print_bytecode();
+            let mut compiler = Compiler::new(lexer);
+            compiler.parse();
+            compiler.print_bytecode();
+            let mut vm = VM::new(compiler);
+            vm.execute();
         }
         else{
             panic!("Usage: miolua [script]");
