@@ -1,5 +1,6 @@
 TODO:
-[x] Lexical analysis
+
+- [x] Lexical analysis
 - [x] Operators and delimitators (+, -,...)
 - [x] Keywords (and, break)
 - [x] Literals (String, Integer, Identifier)
@@ -7,13 +8,12 @@ TODO:
 - [x] Comments
 - [x] Tests
 - [ ] Error Handling
+- [ ] Instruction generation
+- [ ] Store variable
+- [ ] print "hello world"
 
-[] Instruction generation
-- Store variable
-- [] print "hello world"
-
-[] Instruction execution
-- [] print "hello world"
+- [ ] Instruction execution
+- [ ] print "hello world"
 
 # References
 
